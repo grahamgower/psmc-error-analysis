@@ -1,0 +1,14 @@
+# settings common to each model
+
+macs=$HOME/src/macs/macs
+
+# fasta index of human ref from GATK bundle
+fai=human_g1k_v37_decoy.fasta.fai
+chrsizes=`awk '($1>0)&&($1<=22) {print $2}' $fai`
+
+# mutations per base per generation
+mu=1.25e-8
+# ratio of mutations to recombinations
+mu_on_r=4
+
+samples=2
