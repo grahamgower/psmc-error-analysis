@@ -14,7 +14,7 @@ T2=50000
 
 t1=`perl -e "print $T1/(4*$N0)"`
 t2=`perl -e "print $T2/(4*$N0)"`
-alpha1=`perl -e "print -log($N1/$N0)/$t2"`
+alpha1=`perl -e "print -log($N1/$N0)/($t2-$t1)"`
 n2=`perl -e "print $N1/$N0"`
 
 theta=`perl -e "print 4*$N0*$mu"`
