@@ -1,6 +1,10 @@
 # settings common to each model
 
-macs=$HOME/src/macs/macs
+odir=out
+scrm=$HOME/src/scrm/scrm
+ms2multihetsep=$HOME/src/msmc-tools/ms2multihetsep.py
+psmc=$HOME/src/psmc/psmc
+ms2psmcfa=$HOME/src/psmc/utils/ms2psmcfa.pl
 
 # fasta index of human ref from GATK bundle
 fai=human_g1k_v37_decoy.fasta.fai
@@ -11,4 +15,6 @@ mu=1.25e-8
 # ratio of mutations to recombinations
 mu_on_r=4
 
+# simulate a single diploid
 samples=2
+

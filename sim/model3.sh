@@ -19,22 +19,33 @@ t2=`perl -e "print $T2/(4*$N0)"`
 alpha1=`perl -e "print -log($N1/$N0)/($t2-$t1)"`
 n2=`perl -e "print $N2/$N0"`
 
-theta=`perl -e "print 4*$N0*$mu"`
-recom=`perl -e "print 4*$N0*$mu/$mu_on_r"`
+
+mkdir -p $odir
 
 chr=0
 for size in $chrsizes; do
 	chr=$((chr+1))
 
-	$macs \
+	theta=`perl -e "print $size*4*$N0*$mu"`
+	recom=`perl -e "print $size*4*$N0*$mu/$mu_on_r"`
+
+	$scrm \
 		$samples \
-		$size \
+		1 \
 		-t $theta \
-		-r $recom \
-		-h 1e2 \
+		-r $recom $size \
 		-eG $t1 $alpha1 \
-		-eG $t2 0 \
 		-eN $t2 $n2 \
-		2> m$m.chr$chr.trees.txt \
-		1> m$m.chr$chr.sites.txt
+		> $odir/m$m.chr$chr.scrm.txt
+
+	$ms2multihetsep $chr $size \
+		< $odir/m$m.chr$chr.scrm.txt \
+		> $odir/m$m.chr$chr.msmc_input.txt
 done
+
+chr=0
+for size in $chrsizes; do
+	chr=$((chr+1))
+	./ms2psmcfa.pl -c $chr -l $size \
+		< $odir/m$m.chr$chr.scrm.txt
+done > $odir/m$m.psmc_input.psmcfa
