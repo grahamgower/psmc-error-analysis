@@ -7,10 +7,10 @@ t = 1:2e5
 m1.N = rep(10000, length(t))
 
 # model 2: exponential population size decrease
-m2.N0 = 10000
-m2.N1 = 1000000
+m2.N0 = 1000
+m2.N1 = 10000
 m2.T1 = 2000
-m2.T2 = 50000
+m2.T2 = 5000
 m2.alpha1 = -log(m2.N1/m2.N0)/(m2.T2-m2.T1)
 m2.N = vector(length=length(t))
 m2.N[1:m2.T1] = m2.N0
