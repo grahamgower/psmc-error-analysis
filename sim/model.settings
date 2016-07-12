@@ -2,6 +2,7 @@
 
 odir=out
 scrm=$HOME/src/scrm/scrm
+msmc=$HOME/src/msmc/build/msmc
 ms2multihetsep=$HOME/src/msmc-tools/ms2multihetsep.py
 psmc=$HOME/src/psmc/psmc
 ms2psmcfa=$HOME/src/psmc/utils/ms2psmcfa.pl
@@ -18,3 +19,9 @@ mu_on_r=4
 # simulate a single diploid
 samples=2
 
+# -p params for psmc and msmc
+pparams="
+4*1+25*2+4*1+6*1
+1*2+15*1+1*2
+10*1+15*2
+"
