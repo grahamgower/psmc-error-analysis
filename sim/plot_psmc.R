@@ -67,9 +67,13 @@ msmc.input = function(file, mu, g) {
 	return (m)
 }
 
+# find min/max of a vector - I can't believe R doesn't have this
+vmin = function(v) v[which.min(v)]
+vmax = function(v) v[which.max(v)]
+
 # simulated model
-model.sim = function(model) {
-	t=1:2e5
+model.sim = function(model, step=100) {
+	t = seq(1,1e6,step)
 	m = data.frame(time=t, N=length(t))
 	if (model == 1) {
 		# model 1: constant population size
@@ -81,9 +85,9 @@ model.sim = function(model) {
 		T1 = 2000
 		T2 = 5000
 		alpha = -log(N1/N0)/(T2-T1)
-		m$N[1:T1] = N0
-		m$N[T1:T2] = N0*exp(-alpha * (t[T1:T2]-T1))
-		m$N[T2:length(t)] = N1
+		m$N[1:(T1/step)] = N0
+		m$N[(T1/step+1):(T2/step)] = N0*exp(-alpha * (t[(T1/step+1):(T2/step)]-T1))
+		m$N[(T2/step+1):length(t)] = N1
 	} else if (model == 3) {
 		# model 3: bottleneck with exponential population size increase
 		N0 = 100000
@@ -92,9 +96,9 @@ model.sim = function(model) {
 		T1 = 2000
 		T2 = 50000
 		alpha = -log(N1/N0)/(T2-T1)
-		m$N[1:T1] = N0
-		m$N[T1:T2] = N0*exp(-alpha * (t[T1:T2]-T1))
-		m$N[T2:length(t)] = N2
+		m$N[1:(T1/step)] = N0
+		m$N[(T1/step+1):(T2/step)] = N0*exp(-alpha * (t[(T1/step+1):(T2/step)]-T1))
+		m$N[(T2/step+1):length(t)] = N2
 	}
 	return (m)
 }
@@ -103,9 +107,9 @@ model.sim = function(model) {
 mu=1.25e-8
 
 args = commandArgs(trailingOnly=T)
-if (length(args) != 4) {
+if (length(args) != 5) {
 	arg0 = strsplit(commandArgs()[4],"=")[[1]][2]
-	printf("usage: %s model psmc.out msmc.out out.pdf\n", arg0)
+	printf("usage: %s model psmc.out msmc.out out.pdf title\n", arg0)
 	quit("no", 1)
 }
 
@@ -113,13 +117,9 @@ d1 = model.sim(as.integer(args[1]))
 d2 = psmc.input(args[2], mu, 1)
 d3 = msmc.input(args[3], mu, 1)
 
-# find min/max of a vector - I can't believe R doesn't have this
-vmin = function(v) v[which.min(v)]
-vmax = function(v) v[which.max(v)]
-
 # bounds for the plot
 xmin = 1e2 #vmin(d1$time[2:length(d1$time)])
-xmax = 1e6 #vmax(d1$time)
+xmax = 5e5 #vmax(d1$time)
 ymin = 1e3 #vmin(d1$N)
 ymax = 1e6 #vmax(d1$N[1:(length(d1$N)-1)])
 
@@ -134,7 +134,7 @@ lines(d2$time, d2$N, type="s", lty=lty[2], col=col[2], lw=lw)
 lines(d3$time, d3$N, type="s", lty=lty[3], col=col[3], lw=lw)
 
 legend("topleft", c("simulation", "PSMC", "MSMC"), lwd=lw, lty=lty, col=col)
-title(sprintf("model %s", args[1]), xlab="time (generations in the past)", ylab="Ne")
+title(args[5], xlab="time (generations in the past)", ylab="Ne")
 
 # sensible tick marks and labels for log-log axes
 ticks=c(seq(1e2,1e3,1e2), seq(1e3,1e4,1e3), seq(1e4,1e5,1e4), seq(1e5,1e6,1e5))
