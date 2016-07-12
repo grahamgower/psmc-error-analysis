@@ -2,12 +2,6 @@
 
 source ./model.settings
 
-pparams="
-4*1+25*2+4*1+6*1
-1*2+15*1+1*2
-10*1+15*2
-"
-
 p=0
 for pparam in $pparams; do
 	p=$((p+1))
