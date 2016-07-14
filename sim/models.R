@@ -30,13 +30,10 @@ m3.N[1:(m3.T1/step)] = m3.N0
 m3.N[(m3.T1/step+1):(m3.T2/step)] = m3.N0*exp(-m3.alpha1 * (t[(m3.T1/step+1):(m3.T2/step)]-m3.T1))
 m3.N[(m3.T2/step+1):length(t)] = m3.N2
 
-vmin = function(v) v[which.min(v)]
-vmax = function(v) v[which.max(v)]
-ymin = vmin(c(m1.N, m2.N0, m2.N1, m3.N0, m3.N1, m3.N2))
-ymax = vmax(c(m1.N, m2.N0, m2.N1, m3.N0, m3.N1, m3.N2))
-xmin = 100
+xmin = 1e2
 xmax = 5e5
-
+ymin = 1e3
+ymax = 1e6
 
 llog="xy"
 lwd = 2

@@ -67,10 +67,6 @@ msmc.input = function(file, mu, g) {
 	return (m)
 }
 
-# find min/max of a vector - I can't believe R doesn't have this
-vmin = function(v) v[which.min(v)]
-vmax = function(v) v[which.max(v)]
-
 # simulated model
 model.sim = function(model, step=100) {
 	t = seq(1,1e6,step)
@@ -118,10 +114,10 @@ d2 = psmc.input(args[2], mu, 1)
 d3 = msmc.input(args[3], mu, 1)
 
 # bounds for the plot
-xmin = 1e2 #vmin(d1$time[2:length(d1$time)])
-xmax = 5e5 #vmax(d1$time)
-ymin = 1e3 #vmin(d1$N)
-ymax = 1e6 #vmax(d1$N[1:(length(d1$N)-1)])
+xmin = 1e2
+xmax = 5e5
+ymin = 1e3
+ymax = 1e6
 
 pdf(args[4], width=12, height=8)
 lw=3
