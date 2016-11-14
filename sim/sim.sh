@@ -1,26 +1,9 @@
 #!/bin/sh
 
-odir=out
-scrm=$HOME/src/scrm/scrm
-msmc=$HOME/src/msmc/build/msmc
-ms2multihetsep=$HOME/src/msmc-tools/ms2multihetsep.py
-psmc=$HOME/src/psmc/psmc
-ms2psmcfa=$HOME/src/psmc/utils/ms2psmcfa.pl
+source ./model.settings
 
-# mutations per base per generation
-mu=1.25e-8
-# ratio of mutations to recombinations
-mu_on_r=4
-
-# simulate 100 diploids
-samples=200
-
-# 100 mb chromosome
-chrlen=100000000
-
-# -p param for psmc and msmc
-pparam="1*2+15*1+1*2"
-
+# number of haploid samples
+hsamples=`perl -e "print 2*$samples"`
 
 # model 1: constant population size
 model1() {
@@ -33,7 +16,7 @@ model1() {
 	recom=`perl -e "print $chrlen*4*$N*$mu/$mu_on_r"`
 
 	$scrm \
-		$samples \
+		$hsamples \
 		1 \
 		-t $theta \
 		-r $recom $chrlen \
@@ -62,7 +45,7 @@ model2() {
 	mkdir -p $odir/m$m
 
 	$scrm \
-		$samples \
+		$hsamples \
 		1 \
 		-t $theta \
 		-r $recom $chrlen \
@@ -96,7 +79,7 @@ model3() {
 	mkdir -p $odir/m$m
 
 	$scrm \
-		$samples \
+		$hsamples \
 		1 \
 		-t $theta \
 		-r $recom $chrlen \

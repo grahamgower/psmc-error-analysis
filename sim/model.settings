@@ -1,15 +1,9 @@
-# settings common to each model
+# variables common to many scripts
 
-odir=out
+odir=./out
 scrm=$HOME/src/scrm/scrm
 msmc=$HOME/src/msmc/build/msmc
-ms2multihetsep=$HOME/src/msmc-tools/ms2multihetsep.py
 psmc=$HOME/src/psmc/psmc
-ms2psmcfa=$HOME/src/psmc/utils/ms2psmcfa.pl
-
-# fasta index of human ref from GATK bundle
-fai=faidx/human_g1k_v37_decoy.fasta.fai
-chrsizes=`awk '($1>0)&&($1<=22) {print $2}' $fai`
 
 # mutations per base per generation
 mu=1.25e-8
@@ -17,7 +11,16 @@ mu=1.25e-8
 mu_on_r=4
 
 # simulate 100 diploids
-samples=200
+samples=100
+
+# 100 mb chromosome
+chrlen=100000000
+
+# number of models
+models=3
+
+# levels of fragmentation
+fraglevels="100000000 10000000 1000000 100000 10000"
 
 # -p param for psmc and msmc
 pparam="1*2+15*1+1*2"

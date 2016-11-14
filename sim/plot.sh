@@ -20,6 +20,6 @@ for model in "constant population size" "exponential decrease" "bottleneck with 
 done
 
 #./models.R
-#pdflist="models.pdf $pdflist"
+pdflist="models.pdf $pdflist"
 
 pdfunite $pdflist psmc-models.pdf
