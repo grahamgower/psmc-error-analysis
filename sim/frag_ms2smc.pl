@@ -5,93 +5,113 @@
 use strict;
 use warnings;
 use Getopt::Std;
-use Statistics::Basic 'median';
 
-my %opts = (c=>"", f=>"", l=>1e6, p=>"out");
-getopts("c:f:l:", \%opts);
-my ($chr, $faidx, $chrlen, $prefix) = ($opts{c}, $opts{f}, int($opts{l}), $opts{p});
-my (@fraglens, $median_fraglen);
-my @segsites;
+my %opts = (l=>-1, p=>"out", x=>1);
+getopts("l:p:x:", \%opts);
+my ($chrlen, $prefix, $fraglevel) = (int($opts{l}), $opts{p}, $opts{x});
+my (@segsites, @haplotypes);
 
 my $skip = 100; # psmc bin size
-my $minlen = 1e6;
-srand(31415);
+my $minlen = 10*$skip;
+srand(31415*$fraglevel);
 
-if ($faidx eq "" || $chr eq "" || $chrlen < 1) {
-    print STDERR "Usage: $0 -f frag.fai -c chr -l chrlen -p outprefix ms.txt\n";
+if ($fraglevel < $minlen) {
+    print STDERR "Error: -x $fraglevel too low, must be >= $minlen";
     exit 1;
 }
 
-open(my $f, $faidx) or die "Err: cannot open $faidx: $!";
-while (<$f>) {
-    chomp;
-    my @fields = split(/\s/);
-    my $len = int($fields[1]);
-    if ($len < $minlen) {
-        next
-    }
-    if ($len > $chrlen) {
-        die "$faidx: line $.: scaffold length ($len) > chrlen ($chrlen)";
-    }
-    push(@fraglens, $len);
+if ($chrlen < $fraglevel) {
+    print STDERR "Usage: $0 -l chrlen -x fraglevel -p outprefix ms.txt\n";
+    exit 1;
 }
-close($f);
-
-$median_fraglen = median(@fraglens);
 
 while (<>) {
-  if (/^positions:/) {
+    if (/^positions:/) {
 	chomp;
 	my @fields = split(/\s/);
 	@segsites = map { int($_*$chrlen) } @fields[1..$#fields];
-        last;
+    } elsif (@segsites) {
+        if (/^$/) {
+            last;
+        }
+        chomp;
+        push(@haplotypes, $_);
     }
 }
 
-my ($from, $to) = (0, 0);
-my $i = 0;
+for my $sample (0 .. $#haplotypes/2) {
 
-open(my $pfh, ">", "$prefix.psmc")
-    or die "cannot open $prefix.psmc for writing: $!";
+    my ($from, $to) = (0, 0);
+    my $i = 0;
 
-while ($to+$median_fraglen < $chrlen) {
-    my $len;
-    do {
-        $len = $fraglens[rand(@fraglens)];
-    } while ($to+$len > $chrlen);
+    my @ss = @segsites;
+    my $hap1 = $haplotypes[2*$sample];
+    my $hap2 = $haplotypes[2*$sample+1];
 
-    $from = $to+1;
-    $to += $len;
-    $i++;
-    #print("${chr}_${i}\t$from\t$to\n");
+    open(my $pfh, ">", "$prefix/psmc.sample$sample")
+        or die "cannot open $prefix/psmc.sample$sample for writing: $!";
 
-    my $k = 0;
-    while ($segsites[$k] <= $to) {
-        $k++;
+    while ($to < $chrlen) {
+        my $len = $fraglevel;
+        if ($to+$len > $chrlen) {
+            # just use remainder of the chromosome
+            $len = $chrlen - $to;
+        }
+
+        $from = $to+1;
+        $to += $len;
+        $i++;
+        #print("${i}\t$from\t$to\n");
+
+        my $k = 0;
+        while ($k < @ss and $ss[$k] <= $to) {
+            $k++;
+        }
+
+        my @sites = splice(@ss, 0, $k);
+        my $h1 = substr($hap1, 0, $k, "");
+        my $h2 = substr($hap2, 0, $k, "");
+
+        # psmc
+        my $noseg = 1;
+        my @seq = ();
+        $seq[$_] = 0 for (0 .. int($len/$skip));
+        for my $x (0 .. $#sites) {
+            if (substr($h1,$x,1) != substr($h2,$x,1)) {
+                $seq[int(($sites[$x]-$from)/$skip)] = 1;
+                $noseg = 0;
+            }
+        }
+        print $pfh ">$i";
+        for my $j (0 .. $#seq) {
+            print ($pfh "\n") if ($j % 60 == 0);
+            print ($pfh $seq[$j]?'K':'T');
+        }
+        print $pfh "\n";
+
+        if ($noseg) {
+            # No segregating sites in this region, and there is no way to
+            # convey information about a homozygous region to msmc.
+            next;
+        }
+
+        # msmc
+        open(my $mfh, ">", "$prefix/msmc.sample$sample.$i")
+            or die "cannot open $prefix/msmc.sample$sample.$i for writing: $!";
+        my $last = 0;
+        for my $x (0 .. $#sites) {
+            if (substr($h1,$x,1) != substr($h2,$x,1)) {
+                my $pos = $sites[$x] - $from;
+                if ($pos == $last) {
+                    next;
+                }
+                my $gap = $pos - $last;
+                print $mfh "$i\t$pos\t$gap\t10,01\n";
+                $last = $pos;
+            }
+        }
+        close($mfh);
     }
-    my @sites = splice(@segsites, 0, $k);
 
-    # psmc
-    my @seq = ();
-    $seq[$_] = 0 for (0 .. int($len/$skip));
-    $seq[int(($_-$from)/$skip)] = 1 for (@sites);
-    print $pfh ">${chr}_$i";
-    for my $j (0 .. $#seq) {
-        print ($pfh "\n") if ($j % 60 == 0);
-        print ($pfh $seq[$j]?'K':'T');
-    }
-    print $pfh "\n";
-
-    # msmc
-    open(my $mfh, ">", "$prefix.msmc.${chr}_$i")
-        or die "cannot open $prefix.msmc.${chr}_$i for writing: $!";
-    my $last = 1;
-    for (@sites) {
-        my $gap = $_ - $last +1;
-        print $mfh "${chr}_$i\t$_\t$gap\t10,01\n";
-        $last = $_;
-    }
-    close($mfh);
+    close($pfh);
 }
-
-close($pfh);

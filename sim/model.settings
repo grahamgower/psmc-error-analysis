@@ -16,12 +16,8 @@ mu=1.25e-8
 # ratio of mutations to recombinations
 mu_on_r=4
 
-# simulate a single diploid
-samples=2
+# simulate 100 diploids
+samples=200
 
-# -p params for psmc and msmc
-pparams="
-4*1+25*2+4*1+6*1
-1*2+15*1+1*2
-10*1+15*2
-"
+# -p param for psmc and msmc
+pparam="1*2+15*1+1*2"
