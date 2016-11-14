@@ -1,6 +1,6 @@
 #!/bin/sh
 
-source ./model.settings
+odir=./out
 
 chrlen=100000000
 
