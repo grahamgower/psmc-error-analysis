@@ -1,6 +1,7 @@
 #!/bin/sh
 
 source ./model.settings
+#odir=out-truncpsmc
 
 for m in `seq $models`; do
 	for s in `seq 0 $((samples-1))`; do
