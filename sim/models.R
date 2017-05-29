@@ -21,7 +21,7 @@ model_sim <- function(model, xlim=c(1e2, 1e6), step=100) {
 		N1 <- 1000
 		N2 <- 100000
 		T1 <- 2000
-		T2 <- 50000
+		T2 <- 10000
 		alpha <- -log(N1/N0)/(T2-T1)
 		m$N[1:(T1/step)] <- N0
 		m$N[(T1/step+1):(T2/step)] <- N0*exp(-alpha * (t[(T1/step+1):(T2/step)]-T1))
