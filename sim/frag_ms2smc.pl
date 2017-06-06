@@ -1,6 +1,5 @@
 #!/usr/bin/env perl
-# Fragment ms simulated data, using an empirical scaffold length distribution,
-# outputting psmc and msmc input files.
+# Fragment simulated data. Output psmc, msmc, and smc++ formats.
 
 use strict;
 use warnings;
@@ -8,20 +7,19 @@ use Getopt::Std;
 
 my %opts = (l=>-1, p=>"out", x=>1);
 getopts("l:p:x:", \%opts);
-my ($chrlen, $prefix, $fraglevel) = (int($opts{l}), $opts{p}, $opts{x});
+my ($chrlen, $prefix, $fraglen) = (int($opts{l}), $opts{p}, int($opts{x}));
 my (@segsites, @haplotypes);
 
 my $skip = 100; # psmc bin size
 my $minlen = 10*$skip;
-srand(31415*$fraglevel);
 
-if ($fraglevel < $minlen) {
-    print STDERR "Error: -x $fraglevel too low, must be >= $minlen";
+if ($fraglen < $minlen) {
+    print STDERR "Error: -x $fraglen too low, must be >= $minlen";
     exit 1;
 }
 
-if ($chrlen < $fraglevel) {
-    print STDERR "Usage: $0 -l chrlen -x fraglevel -p outprefix ms.txt\n";
+if ($chrlen < $fraglen) {
+    print STDERR "Usage: $0 -l chrlen -x fraglen -p outprefix ms.txt\n";
     exit 1;
 }
 
@@ -52,7 +50,7 @@ for my $sample (0 .. $#haplotypes/2) {
         or die "cannot open $prefix/psmc.sample$sample for writing: $!";
 
     while ($to < $chrlen) {
-        my $len = $fraglevel;
+        my $len = $fraglen;
         if ($to+$len > $chrlen) {
             # just use remainder of the chromosome
             $len = $chrlen - $to;
@@ -89,6 +87,28 @@ for my $sample (0 .. $#haplotypes/2) {
         }
         print $pfh "\n";
 
+        # smc++
+        open(my $sfh, ">", "$prefix/smc++.sample$sample.$i")
+            or die "cannot open $prefix/smc++.sample$sample.$i for writing: $!";
+        my $last_pos = 0;
+        for my $x (0 .. $#sites) {
+            if (substr($h1,$x,1) != substr($h2,$x,1)) {
+                # segregating site
+                my $pos = $sites[$x] - $from;
+                my $gap = $pos - $last_pos -1;
+                if ($gap > 0) {
+                    print $sfh "$gap\t0\t0\t0\n";
+                }
+                print $sfh "1\t1\t0\t0\n";
+                $last_pos = $pos;
+            }
+        }
+        my $gap = $to - $last_pos -1;
+        if ($gap > 0) {
+            print $sfh "$gap\t0\t0\t0\n";
+        }
+        close($sfh);
+
         if ($noseg) {
             # No segregating sites in this region, and there is no way to
             # convey information about a homozygous region to msmc.
@@ -102,9 +122,6 @@ for my $sample (0 .. $#haplotypes/2) {
         for my $x (0 .. $#sites) {
             if (substr($h1,$x,1) != substr($h2,$x,1)) {
                 my $pos = $sites[$x] - $from;
-                if ($pos == $last) {
-                    next;
-                }
                 my $gap = $pos - $last;
                 print $mfh "$i\t$pos\t$gap\t10,01\n";
                 $last = $pos;
