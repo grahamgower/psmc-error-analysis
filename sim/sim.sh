@@ -18,6 +18,7 @@ model1() {
 	$scrm \
 		$hsamples \
 		1 \
+		-p 12 \
 		-t $theta \
 		-r $recom $chrlen \
 		> $odir/m$m/scrm.txt
@@ -47,6 +48,7 @@ model2() {
 	$scrm \
 		$hsamples \
 		1 \
+		-p 12 \
 		-t $theta \
 		-r $recom $chrlen \
 		-eG $t1 $alpha1 \
@@ -81,6 +83,7 @@ model3() {
 	$scrm \
 		$hsamples \
 		1 \
+		-p 12 \
 		-t $theta \
 		-r $recom $chrlen \
 		-eG $t1 $alpha1 \
