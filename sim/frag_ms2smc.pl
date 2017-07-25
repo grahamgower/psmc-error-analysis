@@ -48,6 +48,8 @@ for my $sample (0 .. $#haplotypes/2) {
 
     open(my $pfh, ">", "$prefix/psmc.sample$sample")
         or die "cannot open $prefix/psmc.sample$sample for writing: $!";
+    open(my $pfh2, ">", "$prefix/psmc-trunc.sample$sample")
+        or die "cannot open $prefix/psmc-trunc.sample$sample for writing: $!";
 
     while ($to < $chrlen) {
         my $len = $fraglen;
@@ -72,11 +74,13 @@ for my $sample (0 .. $#haplotypes/2) {
 
         # psmc
         my $noseg = 1;
+        my $lastpos;
         my @seq = ();
         $seq[$_] = 0 for (0 .. int($len/$skip));
         for my $x (0 .. $#sites) {
             if (substr($h1,$x,1) != substr($h2,$x,1)) {
                 $seq[int(($sites[$x]-$from)/$skip)] = 1;
+                $lastpos = int(($sites[$x]-$from)/$skip);
                 $noseg = 0;
             }
         }
@@ -87,33 +91,23 @@ for my $sample (0 .. $#haplotypes/2) {
         }
         print $pfh "\n";
 
-        # smc++
-        open(my $sfh, ">", "$prefix/smc++.sample$sample.$i")
-            or die "cannot open $prefix/smc++.sample$sample.$i for writing: $!";
-        my $last_pos = 0;
-        for my $x (0 .. $#sites) {
-            if (substr($h1,$x,1) != substr($h2,$x,1)) {
-                # segregating site
-                my $pos = $sites[$x] - $from;
-                my $gap = $pos - $last_pos -1;
-                if ($gap > 0) {
-                    print $sfh "$gap\t0\t0\t0\n";
-                }
-                print $sfh "1\t1\t0\t0\n";
-                $last_pos = $pos;
-            }
-        }
-        my $gap = $to - $last_pos -1;
-        if ($gap > 0) {
-            print $sfh "$gap\t0\t0\t0\n";
-        }
-        close($sfh);
 
         if ($noseg) {
             # No segregating sites in this region, and there is no way to
             # convey information about a homozygous region to msmc.
             next;
         }
+
+        # psmc, but truncate sequence to match what msmc sees
+        splice(@seq, $lastpos+1);
+
+        print $pfh2 ">$i";
+        for my $j (0 .. $#seq) {
+            print ($pfh2 "\n") if ($j % 60 == 0);
+            print ($pfh2 $seq[$j]?'K':'T');
+        }
+        print $pfh2 "\n";
+
 
         # msmc
         open(my $mfh, ">", "$prefix/msmc.sample$sample.$i")
@@ -122,6 +116,14 @@ for my $sample (0 .. $#haplotypes/2) {
         for my $x (0 .. $#sites) {
             if (substr($h1,$x,1) != substr($h2,$x,1)) {
                 my $pos = $sites[$x] - $from;
+                if ($pos == $last) {
+                    # This can happen because we simulate mutations under an
+                    # infinite sites model on the interval (0,1).  Multiple
+                    # mutations very close to each other may be mapped to the
+                    # same nucleotide position when we multiply by the
+                    # chromosome length.  The result is that MSMC crashes.
+                    next;
+                }
                 my $gap = $pos - $last;
                 print $mfh "$i\t$pos\t$gap\t10,01\n";
                 $last = $pos;
@@ -131,4 +133,5 @@ for my $sample (0 .. $#haplotypes/2) {
     }
 
     close($pfh);
+    close($pfh2);
 }
