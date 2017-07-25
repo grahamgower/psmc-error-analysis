@@ -7,10 +7,11 @@ hsamples=`perl -e "print 2*$samples"`
 
 # model 1: constant population size
 model1() {
+	p=$1
 	m=1
 	N=10000
 
-	mkdir -p $odir/m$m
+	mkdir -p $odir/m$m/p$p
 
 	theta=`perl -e "print $chrlen*4*$N*$mu"`
 	recom=`perl -e "print $chrlen*4*$N*$mu/$mu_on_r"`
@@ -21,11 +22,12 @@ model1() {
 		-p 12 \
 		-t $theta \
 		-r $recom $chrlen \
-		> $odir/m$m/scrm.txt
+		> $odir/m$m/p$p/scrm.txt
 }
 
 # model 2: exponential population size decrease
 model2() {
+	p=$1
 	m=2
 
 	# Going backwards in time, we start with size N0, then at generation T1,
@@ -43,7 +45,7 @@ model2() {
 	theta=`perl -e "print $chrlen*4*$N0*$mu"`
 	recom=`perl -e "print $chrlen*4*$N0*$mu/$mu_on_r"`
 
-	mkdir -p $odir/m$m
+	mkdir -p $odir/m$m/p$p
 
 	$scrm \
 		$hsamples \
@@ -53,12 +55,13 @@ model2() {
 		-r $recom $chrlen \
 		-eG $t1 $alpha1 \
 		-eG $t2 0.0 \
-		> $odir/m$m/scrm.txt
+		> $odir/m$m/p$p/scrm.txt
 }
 
 
 # model 3: bottleneck with exponential population size increase
 model3() {
+	p=$1
 	m=3
 
 	# Going backwards in time, we start with size N0, then at generation T1,
@@ -78,7 +81,7 @@ model3() {
 	theta=`perl -e "print $chrlen*4*$N0*$mu"`
 	recom=`perl -e "print $chrlen*4*$N0*$mu/$mu_on_r"`
 
-	mkdir -p $odir/m$m
+	mkdir -p $odir/m$m/p$p
 
 	$scrm \
 		$hsamples \
@@ -88,10 +91,13 @@ model3() {
 		-r $recom $chrlen \
 		-eG $t1 $alpha1 \
 		-eN $t2 $n2 \
-		> $odir/m$m/scrm.txt
+		> $odir/m$m/p$p/scrm.txt
 }
 
-model1 &
-model2 &
-model3 &
+for p in `seq $pops`; do
+	model1 $p &
+	model2 $p &
+	model3 $p &
+done
+
 wait

@@ -10,8 +10,11 @@ mu=1.25e-8
 # ratio of mutations to recombinations
 mu_on_r=4
 
-# simulate 100 diploids
-samples=100
+# simulate 10 diploids
+samples=10
+
+# distinct populations simulated
+pops=10
 
 # 100 mb chromosome
 chrlen=100000000
