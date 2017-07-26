@@ -6,6 +6,6 @@ Procedure undertaken:
 
 Noting that msmc cannot observe homozygous regions following the last
 segregating site in an input file, we also truncate psmc input in the same
-way (frag-truncpsmc.sh) and rerun psmc on the truncated input.
+way and run psmc on the truncated input.
 
 The final output is parsed and dumped to a gzipped .tsv with psmcr-sim-dump.R.
