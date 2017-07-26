@@ -12,6 +12,11 @@ for p in `seq $pops`; do
 		for s in `seq 0 $((samples-1))`; do
 			for x in $fraglevels; do
 				mkdir -p $odir/m$m/msmc1/p$p/s$s/x$x
+				# msmc doesn't like empty files
+				find $odir/m$m/p$p/x$x \
+					-type f \
+					-empty \
+					-exec rm {} \;
 				$msmc \
 					-p $pparam \
 					--verbose \
