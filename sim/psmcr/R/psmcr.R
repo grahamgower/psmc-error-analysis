@@ -127,7 +127,7 @@ parse_psmc <- function(file, mu, g, s=100) {
 
 	i <- 0
 	for (r in 1:rd) {
-		dlist[[r]]$time <- 2*d$N0[r] * dlist[[r]]$t / g
+		dlist[[r]]$time <- 2*d$N0[r] * dlist[[r]]$t * g
 		dlist[[r]]$N <- d$N0[r] * dlist[[r]]$lambda
 
 		# RI line above has greater precision
